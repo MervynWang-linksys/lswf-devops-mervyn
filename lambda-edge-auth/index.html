@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki File Browser - Linksys</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 48px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+        
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        
+        p {
+            color: #4a5568;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        
+        .status {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            color: #718096;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        .status-value.success {
+            color: #38a169;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            background: #48bb78;
+            color: white;
+        }
+        
+        .info {
+            margin-top: 32px;
+            padding: 16px;
+            background: #edf2f7;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .footer {
+            margin-top: 32px;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔐</div>
+        <h1>Wiki File Browser</h1>
+        <p>You are successfully authenticated and connected to the Confluence/Jira attachments storage.</p>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Authentication</span>
+                <span class="status-value success">✓ Authenticated</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">GitHub OAuth</span>
+                <span class="status-value success">✓ Active</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Organization</span>
+                <span class="status-value">linksys</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Session Status</span>
+                <span class="badge">Active</span>
+            </div>
+        </div>
+        
+        <div class="info">
+            <strong>📁 S3 Bucket:</strong> confluence-jira-attachments<br>
+            <strong>☁️ CloudFront:</strong> wiki-file.linksys.cloud<br>
+            <strong>⏱️ Session Duration:</strong> 24 hours
+        </div>
+        
+        <div class="footer">
+            Powered by Lambda@Edge + CloudFront + GitHub OAuth
+        </div>
+    </div>
+    
+    <script>
+        // Display cookie info
+        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+            return acc;
+        }, {});
+        
+        if (cookies['wiki-file-session']) {
+            console.log('✓ Session cookie found:', cookies['wiki-file-session'].substring(0, 20) + '...');
+        }
+    </script>
+</body>
+</html>
