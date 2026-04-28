@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>S3 File Browser</title>
+</head>
+<body>
+    <h1>Files in Bucket</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Size</th>
+                <th>Last Modified</th>
+            </tr>
+        </thead>
+        <tbody id="file-table-body">
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchFiles() {
+            const response = await fetch('files.json');
+            const files = await response.json();
+            const tableBody = document.getElementById('file-table-body');
+            
+            files.forEach(file => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${file.key}</td>
+                    <td>${file.size}</td>
+                    <td>${new Date(file.last_modified).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        fetchFiles();
+    </script>
+</body>
+</html>

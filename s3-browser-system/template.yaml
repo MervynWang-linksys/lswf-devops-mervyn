@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: S3 File Lister System
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: The name of the S3 bucket to monitor.
+    Default: fw-qa-internal-lswf
+
+Resources:
+  FileListerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/
+      Handler: index.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref BucketName
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref BucketName
+
+  S3Trigger:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt FileListerFunction.Arn
+          - Event: s3:ObjectRemoved:*
+            Function: !GetAtt FileListerFunction.Arn
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref FileListerFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub arn:aws:s3:::${BucketName}
