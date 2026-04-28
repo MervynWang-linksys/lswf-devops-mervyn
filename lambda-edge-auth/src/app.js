@@ -184,11 +184,12 @@ async function callback(request) {
             };
         }
 
-        const signedCookies = generateSignedCookies(
-            cfg.cloudfrontDomain,
-            cfg.cloudfrontKeyId,
-            cfg.privateKeyPem,
-        );
+        // Generate session token instead of signed cookies
+        const timestamp = Date.now().toString();
+        const hmac = crypto.createHmac('sha256', cfg.sessionSecret);
+        hmac.update(timestamp);
+        const signature = hmac.digest('hex');
+        const sessionToken = `${timestamp}.${signature}`;
 
         const cookieOptions = {
             domain: cfg.cloudfrontDomain,
@@ -199,12 +200,10 @@ async function callback(request) {
             maxAge: 86400,
         };
 
-        const setCookieHeaders = Object.entries(signedCookies).map(
-            ([name, value]) => ({
-                key: 'Set-Cookie',
-                value: serializeCookie(name, value, cookieOptions),
-            }),
-        );
+        const setCookieHeaders = [{
+            key: 'Set-Cookie',
+            value: serializeCookie('wiki-file-session', sessionToken, cookieOptions),
+        }];
 
         return {
             status: '302',
