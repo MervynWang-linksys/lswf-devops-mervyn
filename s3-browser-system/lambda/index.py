@@ -7,51 +7,48 @@ s3 = boto3.client('s3')
 def lambda_handler(event, context):
     bucket_name = os.environ['BUCKET_NAME']
     output_key = 's3-browser/files.json'
-    
+
     try:
-        # Get existing files.json
-        try:
-            response = s3.get_object(Bucket=bucket_name, Key=output_key)
-            file_list = json.loads(response['Body'].read().decode('utf-8'))
-        except s3.exceptions.NoSuchKey:
-            # First run - perform full scan
+        # EventBridge scheduled event or manual invoke — always full scan
+        if 'source' in event and event['source'] == 'aws.events':
             file_list = perform_full_scan(bucket_name, output_key)
-        
-        # Process S3 event records
-        for record in event.get('Records', []):
-            event_name = record['eventName']
-            s3_info = record['s3']
-            changed_key = s3_info['object']['key']
-            
-            # Skip if the changed file is files.json itself
-            if changed_key == output_key:
-                continue
-            
-            if event_name.startswith('ObjectCreated'):
-                # Add or update file entry
-                update_file_entry(bucket_name, changed_key, file_list)
-            elif event_name.startswith('ObjectRemoved'):
-                # Remove file entry
-                remove_file_entry(changed_key, file_list)
-        
-        # Write updated files.json back to S3
+        elif not event.get('Records'):
+            file_list = perform_full_scan(bucket_name, output_key)
+        else:
+            # S3 event: incremental update
+            try:
+                response = s3.get_object(Bucket=bucket_name, Key=output_key)
+                file_list = json.loads(response['Body'].read().decode('utf-8'))
+            except s3.exceptions.NoSuchKey:
+                file_list = perform_full_scan(bucket_name, output_key)
+
+            for record in event.get('Records', []):
+                event_name = record['eventName']
+                changed_key = record['s3']['object']['key']
+                if changed_key == output_key:
+                    continue
+                if event_name.startswith('ObjectCreated'):
+                    update_file_entry(bucket_name, changed_key, file_list)
+                elif event_name.startswith('ObjectRemoved'):
+                    remove_file_entry(changed_key, file_list)
+
         s3.put_object(
             Bucket=bucket_name,
             Key=output_key,
             Body=json.dumps(file_list, indent=2),
-            ContentType='application/json'
+            ContentType='application/json',
         )
-        
+
         return {
             'statusCode': 200,
-            'body': json.dumps(f'files.json updated successfully. Total files: {len(file_list)}')
+            'body': json.dumps(f'files.json updated. Total: {len(file_list)}'),
         }
-    
+
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps(f'Error: {str(e)}')
+            'body': json.dumps(f'Error: {str(e)}'),
         }
 
 
